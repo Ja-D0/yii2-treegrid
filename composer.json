@@ -1,6 +1,6 @@
 {
     "name": "ja-d0/yii2-treegrid",
-    "description": "Extension for Yii2 Framework to work with jQuery TreeGrid",
+    "description": "Extension for Yii2 Framework",
     "keywords": ["yii2", "tree", "treeview", "treegrid", "interface"],
     "type": "yii2-extension",
     "license": "BSD-3-Clause",
@@ -22,10 +22,5 @@
     },
     "autoload": {
         "psr-4": { "Ja_D0\\treegrid\\": "" }
-    },
-    "extra": {
-        "branch-alias": {
-            "dev-master": "1.0.x-dev"
-        }
     }
 }
