@@ -58,7 +58,7 @@ class TreeGrid extends Widget
 
     public $searchContainerOptions = ["class" => "treegrid-search-container"];
 
-    public $searchInputOprions = ["placeholder" => "Введите текст для поиска"];
+    public $searchInputOptions = ["placeholder" => "Введите текст для поиска"];
 
     /**
      * @var array the HTML attributes for the table header row.
@@ -273,8 +273,8 @@ class TreeGrid extends Widget
      */
     public function renderSearch(): string
     {
-        Html::addCssClass($this->searchInputOprions, "treegrid-search form-control");
-        $searchInput = Html::input("text", options: $this->searchInputOprions);
+        Html::addCssClass($this->searchInputOptions, "treegrid-search form-control");
+        $searchInput = Html::input("text", options: $this->searchInputOptions);
         $searchInputContainer = Html::tag("div", $searchInput, $this->searchContainerOptions);
 
         return Html::tag("div", $searchInputContainer, ["class" => "col-sm-6"]);
