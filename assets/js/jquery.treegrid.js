@@ -7,6 +7,14 @@
  */
 (function($) {
 
+    var delay = (function () {
+        var timer = 0;
+        return function (callback, ms) {
+            clearTimeout(timer);
+            timer = setTimeout(callback, ms);
+        };
+    })();
+
     var methods = {
         /**
          * Initialize tree
@@ -18,10 +26,13 @@
             var settings = $.extend({}, this.treegrid.defaults, options);
             return this.each(function() {
                 var $this = $(this);
-                $this.treegrid('setTreeContainer', $(this));
+                $this.treegrid('setTreeContainer', $(this).find('table'));
                 $this.treegrid('setSettings', settings);
                 settings.getRootNodes.apply(this, [$(this)]).treegrid('initNode', settings);
                 $this.treegrid('getRootNodes').treegrid('render');
+                $this.treegrid('getSetting', 'getSearchInput').apply(this).each(function() {
+                    $(this).treegrid('initSearchEvent', $this);
+                });
             });
         },
         /**
@@ -41,7 +52,7 @@
         /**
          * Инициализирует события изменения
          *
-         * @returns {*|jQuery|HTMLElement}
+         * @returns {Node}
          */
         initChangeEvent: function() {
             var $this = $(this);
@@ -54,6 +65,42 @@
                 }
             });
             return $this;
+        },
+        initSearchEvent: function (widget) {
+            var search = $(this);
+            var nodes = $(widget).treegrid('getAllNodes');
+            var findedClass = $(widget).treegrid('getSetting', 'findedClass');
+            search.on("keyup", function(e) {
+                $(widget).treegrid('getRootNodes').show();
+                nodes.removeClass(findedClass);
+                var value = search.val();
+                if (value.length === 0) {
+                    return;
+                } else {
+                    $(widget).treegrid('collapseAll');
+                }
+                delay(function () {
+                    nodes.each(function () {
+                        var $node = $(this);
+                        var cell = $node.find('td').eq($(widget).treegrid('getSetting', 'treeColumn'));
+                        var text = cell.text();
+                        if (text.toLowerCase().includes(value.toLowerCase())) {
+                            $node.addClass(findedClass);
+                            var parent = $node.treegrid('getParentNode');
+                            if (parent) {
+                                parent.treegrid('expand');
+                            }
+                            while (parent && !parent.treegrid('isRoot')) {
+                                parent = parent.treegrid('getParentNode');
+                                parent.treegrid('expand');
+                            }
+                        } else {
+                            $node.hide();
+                        }
+                    });
+                }, 1500);
+            });
+            return search;
         },
         /**
          * Initialize node events
@@ -84,11 +131,9 @@
             $this.on("unselect", function () {
                 $this.removeClass('treegrid-selected');
             });
-            //Поведение при клике по умолчанию
             $this.on("click", function () {
-                $this.treegrid('toggleSelect');
+                $this.treegrid("toggleSelect");
             });
-
             return $this;
         },
         /**
@@ -122,21 +167,20 @@
             //Поведение при выборе по умолчанию
             $this.on("select", function () {
                 var $this = $(this);
-                if (typeof($this.treegrid('getSetting', 'onExpand')) === "function") {
+                if (typeof($this.treegrid('getSetting', 'onSelect')) === "function") {
                     $this.treegrid('getSetting', 'onSelect').apply($this);
                 }
             });
             //Поведение при отмене выбора по умолчанию
             $this.on("unselect", function () {
                 var $this = $(this);
-                if (typeof($this.treegrid('getSetting', 'onExpand')) === "function") {
+                if (typeof($this.treegrid('getSetting', 'onUnselect')) === "function") {
                     $this.treegrid('getSetting', 'onUnselect').apply($this);
                 }
             });
-            //Поведение при клике по умолчанию
             $this.on("click", function () {
                 var $this = $(this);
-                if (typeof($this.treegrid('getSetting', 'onExpand')) === "function") {
+                if (typeof($this.treegrid('getSetting', 'onClick')) === "function") {
                     $this.treegrid('getSetting', 'onClick').apply($this);
                 }
             });
@@ -152,7 +196,7 @@
             if ($this.treegrid('isCollapsed')) {
                 var cell = $this.find('td').get($this.treegrid('getSetting', 'treeColumn'));
                 var tpl = $this.treegrid('getSetting', 'expanderTemplate');
-                var expander = $this.treegrid('getSetting', 'getExpander').apply(this);
+                var expander = $this.treegrid('getExpander');
                 if (expander) {
                     expander.remove();
                 }
@@ -172,7 +216,7 @@
             var $this = $(this);
             $this.find('.treegrid-indent').remove();
             var tpl = $this.treegrid('getSetting', 'indentTemplate');
-            var depth = $this.treegrid('getDepth');
+            var depth = $this.treegrid('getDepth') + 2;
             for (var i = 0; i < depth; i++) {
                 $($this.find('td')[$this.treegrid('getSetting', 'treeColumn')]).prepend(tpl);
             }
@@ -187,16 +231,15 @@
             var $this = $(this);
             if ($this.treegrid('isCollapsed')) {
                 var tpl = $this.treegrid('getSetting', 'expanderLineTemplate');
-                var expander = $this.treegrid('getSetting', 'getExpander').apply(this);
+                var expander = $this.treegrid('getExpander');
                 $(tpl).insertAfter(expander);
             }
-
             return $this;
         },
         /**
          * Инициализирует иконку для узла
          *
-         * @returns {*|jQuery|HTMLElement}
+         * @returns {Node}
          */
         initIcon: function () {
             var $this = $(this);
@@ -276,7 +319,6 @@
                 } else {
                     $this.treegrid('collapse');
                 }
-
             }
             return $this;
         },
@@ -311,13 +353,37 @@
         /**
          * Set tree container
          *
-         * @param {HtmlE;ement} container
+         * @param {HtmlElement} container
          */
         setTreeContainer: function(container) {
             return $(this).data('treegrid', container);
         },
-        setSelectionColumn: function(options) {
-
+        /**
+         * Возвращает выбранные узлы
+         *
+         * @return {Node}
+         */
+        getSelectedNodes: function () {
+            var $this = $(this);
+            return $this.treegrid('getTreeContainer').find('tr.' + $this.treegrid('getSetting', 'selectedClass'));
+        },
+        /**
+         * Возвращает расширитель узла
+         *
+         * @returns {Node}
+         */
+        getExpander: function() {
+            var $this = $(this);
+            return $this.find('.treegrid-expander');
+        },
+        /**
+         * Возвращает иконку узла
+         *
+         * @returns {Node}
+         */
+        getIcon: function() {
+            var $this = $(this);
+            return $this.find('.treegrid-icon');
         },
         /**
          * Method return all root nodes of tree.
@@ -396,13 +462,7 @@
             if ($(this).treegrid('getParentNode') === null) {
                 return 0;
             }
-            var depth = $(this).treegrid('getParentNode').treegrid('getDepth') + 1;
-
-            if (!$(this).treegrid('isLeaf')) {
-                depth += 2;
-            }
-
-            return depth;
+            return $(this).treegrid('getParentNode').treegrid('getDepth') + 3;
         },
         /**
          * Method return true if node is root
@@ -476,6 +536,11 @@
         isCollapsed: function() {
             return $(this).hasClass('treegrid-collapsed');
         },
+        /**
+         * Возвращает true, если узел выбран
+         *
+         * @returns {Boolean}
+         */
         isSelected: function () {
             return $(this).hasClass('treegrid-selected');
         },
@@ -571,55 +636,91 @@
                 }
             });
         },
+        /**
+         * Выбирает узел
+         *
+         * @returns {Node}
+         */
         select: function () {
             return $(this).each(function () {
                 var $this = $(this);
-                console.log($this.treegrid('isLeaf'));
-                if ($this.treegrid('isLeaf') && !$this.treegrid('isSelected')) {
+                if ($this.treegrid('isLeaf') && !$this.treegrid('isSelected') && $this.treegrid('getSetting', 'multipleSelect') && $this.treegrid('getSetting', 'selectRecursive')) {
                     $this.treegrid('selectRecursive');
                     $this.trigger("change");
-                }
-                if (!$this.treegrid('isLeaf') && !$this.treegrid('isSelected')) {
+                } else {
                     $this.trigger('select');
                     $this.trigger("change");
                 }
-
             });
         },
+        /**
+         * Отменяет выбор узла
+         *
+         * @returns {Node}
+         */
         unselect: function () {
             return $(this).each(function() {
                 var $this = $(this);
-                if ($this.treegrid('isLeaf') && $this.treegrid('isSelected')) {
+                if ($this.treegrid('isLeaf') && $this.treegrid('isSelected') && $this.treegrid('getSetting', 'multipleSelect') && $this.treegrid('getSetting', 'selectRecursive')) {
                     $this.treegrid('unselectRecursive');
                     $this.trigger("change");
-                }
-                if (!$this.treegrid('isLeaf') && $this.treegrid('isSelected')) {
+                } else {
                     $this.trigger('unselect');
                     $this.trigger("change");
                 }
             });
         },
+        /**
+         * Выбирает узел, если не выбран и отменяет выбор, если узел выбран
+         *
+         * @returns {Node}
+         */
         toggleSelect: function () {
             var $this = $(this);
-            if ($this.treegrid('isSelected')) {
-                $this.treegrid('unselect');
+            var selectedNodes = $this.treegrid('getSelectedNodes');
+            if (!$this.treegrid('getSetting', 'multipleSelect') && selectedNodes.length >= 1) {
+                if (selectedNodes.attr("data-id") !== $this.attr("data-id")) {
+                    selectedNodes.treegrid('unselect');
+                    $this.treegrid('select');
+                } else {
+                    $this.treegrid('unselect');
+                }
             } else {
-                $this.treegrid('select');
+                if (!$this.treegrid('isSelected')) {
+                    $this.treegrid('select');
+                } else {
+                    $this.treegrid('unselect');
+                }
             }
+            return $this;
         },
+        /**
+         * Выбирает узел и всех его потомков
+         *
+         * @returns {Node}
+         */
         selectRecursive: function () {
             return $(this).each(function() {
                 var $this = $(this);
-                $this.trigger('select');
+                if (!$this.treegrid('isSelected')) {
+                    $this.trigger('select');
+                }
                 if ($this.treegrid('isLeaf')) {
                     $this.treegrid('getChildNodes').treegrid('selectRecursive');
                 }
             });
         },
+        /**
+         * Отменяет выбор узла и всех его потомков
+         *
+         * @returns {Node}
+         */
         unselectRecursive: function () {
             return $(this).each(function() {
                 var $this = $(this);
-                $this.trigger('unselect');
+                if ($this.treegrid('isSelected')) {
+                    $this.trigger('unselect');
+                }
                 if ($this.treegrid('isLeaf')) {
                     $this.treegrid('getChildNodes').treegrid('unselectRecursive');
                 }
@@ -668,7 +769,7 @@
         renderExpander: function() {
             return $(this).each(function() {
                 var $this = $(this);
-                var expander = $this.treegrid('getSetting', 'getExpander').apply(this);
+                var expander = $this.treegrid('getExpander');
                 if (expander) {
                     if (!$this.treegrid('isCollapsed')) {
                         expander.removeClass($this.treegrid('getSetting', 'expanderCollapsedClass'));
@@ -686,12 +787,12 @@
         /**
          * Отрисовывает иконку в зависимости от состояния узла
          *
-         * @returns {*|jQuery}
+         * @returns {Node}
          */
         renderIcon: function () {
             return $(this).each(function() {
                 var $this = $(this);
-                var icon = $this.treegrid('getSetting', 'getIcon').apply(this);
+                var icon = $this.treegrid('getIcon');
                 if (icon) {
                     if (!$this.treegrid('isLeaf')) {
                         icon.addClass($this.treegrid('getSetting', 'iconClass'));
@@ -729,24 +830,21 @@
         saveStateMethod: 'cookie',
         saveStateName: 'tree-grid-state',
         expanderTemplate: '<span class="treegrid-expander"></span>',
-        expanderLineTemplate: '<span class="treegrid-expander-h-line"></span>',
+        expanderLineTemplate: '<span class="treegrid-expander-indent-line"></span>',
         indentTemplate: '<span class="treegrid-indent"></span>',
         iconTemplate: '<span class="treegrid-icon">',
         expanderExpandedClass: 'treegrid-expander-expanded',
         expanderCollapsedClass: 'treegrid-expander-collapsed',
+        selectedClass: 'treegrid-selected',
+        findedClass: 'treegrid-finded',
         iconExpandedClass: 'treegrid-icon-expanded',
         iconCollapsedClass: 'treegrid-icon-collapsed',
         iconClass: 'treegrid-icon-file',
         treeColumn: 0,
-        getExpander: function() {
-            return $(this).find('.treegrid-expander');
-        },
-        getIcon: function() {
-            return $(this).find('.treegrid-icon');
-        },
-        getNodeCheckbox: function() {
-            var nodeId = $(this).treegrid('getSetting', 'getNodeId');
-            return $(this).find('input[type="checkbox"][value="' + nodeId + '"]');
+        multipleSelect: false,
+        selectRecursive: false,
+        getSearchInput: function () {
+            return $(this).find('.treegrid-search');
         },
         getNodeId: function() {
             var template = /treegrid-([A-Za-z0-9_-]+)/;

@@ -33,15 +33,31 @@ class TreeGrid extends Widget
     public $dataColumnClass;
 
     /**
-     * @var array the HTML attributes for the container tag of the grid view.
+     * @var array атрибуты HTML для тега виджета
+     */
+    public $options = ['class' => 'treegrid'];
+
+    /**
+     * @var string|Closure|boolean элементы свободного пространства
+     */
+    public $containerSpace = false;
+
+    /**
+     * @var array the HTML attributes for the table tag of the grid view.
      * @see \yii\helpers\Html::renderTagAttributes() for details on how attributes are being rendered.
      */
-    public $options = ['class' => 'table table-striped table-bordered'];
+    public $tableOptions = ['class' => 'table table-bordered col-sm-12'];
 
     /**
      * @var array The plugin options
      */
     public $pluginOptions = [];
+
+    public $containerRowOptions = ["class" => "treegrid-container row"];
+
+    public $searchContainerOptions = ["class" => "treegrid-search-container"];
+
+    public $searchInputOprions = ["placeholder" => "Введите текст для поиска"];
 
     /**
      * @var array the HTML attributes for the table header row.
@@ -72,13 +88,25 @@ class TreeGrid extends Widget
     public $emptyTextOptions = ['class' => 'empty'];
 
     /**
+     * @var bool отображать ли поле поиска
+     */
+    public $showSearch = true;
+
+    /**
+     * @var bool отображать ли контейнер с контентом над таблицей
+     */
+    public $showContainerContent = true;
+
+    /**
      * @var bool whether to show the header section of the grid table.
      */
     public $showHeader = true;
+
     /**
      * @var bool whether to show the footer section of the grid table.
      */
     public $showFooter = false;
+
     /**
      * @var bool whether to show the grid view if [[dataProvider]] returns no data.
      */
@@ -108,21 +136,21 @@ class TreeGrid extends Widget
      *
      * @see \yii\helpers\Html::renderTagAttributes() for details on how attributes are being rendered.
      */
-    public $rowOptions = [];
+    public $tableRowOptions = [];
 
     /**
      * @var Closure an anonymous function that is called once BEFORE rendering each data model.
      * It should have the similar signature as [[rowOptions]]. The return result of the function
      * will be rendered directly.
      */
-    public $beforeRow;
+    public $beforeTableRow;
 
     /**
      * @var Closure an anonymous function that is called once AFTER rendering each data model.
      * It should have the similar signature as [[rowOptions]]. The return result of the function
      * will be rendered directly.
      */
-    public $afterRow;
+    public $afterTableRow;
 
     /**
      * @var string name of key column used to build tree
@@ -157,6 +185,7 @@ class TreeGrid extends Widget
         if ($this->emptyText === null) {
             $this->emptyText = Yii::t('yii', 'No results found.');
         }
+
         if (!isset($this->options['id'])) {
             $this->options['id'] = $this->getId();
         }
@@ -169,7 +198,6 @@ class TreeGrid extends Widget
         if (!$this->formatter instanceof Formatter) {
             throw new InvalidConfigException('The "formatter" property must be either a Format object or a configuration array.');
         }
-
         if (!$this->keyColumnName) {
             throw new InvalidConfigException('The "keyColumnName" property must be specified"');
         }
@@ -194,20 +222,82 @@ class TreeGrid extends Widget
         $view->registerJs("jQuery('#$id').treegrid($options);");
 
         if ($this->showOnEmpty || $this->dataProvider->getCount() > 0) {
+            $containerContent = $this->showContainerContent ? $this->renderContainerContent() : false;
             $header = $this->showHeader ? $this->renderTableHeader() : false;
             $body = $this->renderItems();
             $footer = $this->showFooter ? $this->renderTableFooter() : false;
 
-            $content = array_filter([
+            $tableContent = array_filter([
                 $header,
                 $body,
                 $footer
             ]);
 
-            return Html::tag('table', implode("\n", $content), $this->options);
+            $table = Html::tag('table', implode("\n", $tableContent), $this->tableOptions);
+            $tableRow = Html::tag('div', $table);
+
+            $content =  array_filter([
+                $containerContent,
+                $tableRow,
+            ]);
+
+            return Html::tag('div', implode("\n", $content), $this->options);
         } else {
             return $this->renderEmpty();
         }
+    }
+
+    /**
+     * Рендерит контейнер с контентом над таблицей
+     * @return string результат рендера
+     */
+    public function renderContainerContent()
+    {
+        $search = $this->showSearch ? $this->renderSearch() : false;
+
+        $containerSpaceContent = $this->renderContainerSpace();
+
+        $content = array_filter([
+            $containerSpaceContent,
+            $search
+        ]);
+
+        return Html::tag("div", implode("\n", $content), $this->containerRowOptions);
+
+    }
+
+    /**
+     * Рендерит контейнер с полем поиска
+     * @return string результат рендера
+     */
+    public function renderSearch(): string
+    {
+        Html::addCssClass($this->searchInputOprions, "treegrid-search form-control");
+        $searchInput = Html::input("text", options: $this->searchInputOprions);
+        $searchInputContainer = Html::tag("div", $searchInput, $this->searchContainerOptions);
+
+        return Html::tag("div", $searchInputContainer, ["class" => "col-sm-6"]);
+    }
+
+    /**
+     * Рендерит пространство слева в контейнере над таблицей
+     * @return string результат рендера
+     */
+    public function renderContainerSpace(): string
+    {
+        $containerOptions = ["class" => "col-sm-" . ($this->showSearch ? "6" : "12")];
+
+        if ($this->containerSpace instanceof Closure) {
+            $containerSpaceContent = call_user_func($this->containerSpace);
+        } else {
+            $containerSpaceContent = $this->containerSpace;
+        }
+
+        if ($containerSpaceContent === false) {
+            return Html::tag("div", null, $containerOptions);
+        }
+
+        return Html::tag("div", $containerSpaceContent, $containerOptions);
     }
 
     /**
@@ -236,12 +326,12 @@ class TreeGrid extends Widget
         foreach ($this->columns as $column) {
             $cells[] = $column->renderDataCell($model, $key, $index);
         }
-        if ($this->rowOptions instanceof Closure) {
-            $options = call_user_func($this->rowOptions, $model, $key, $index, $this);
+        if ($this->tableRowOptions instanceof Closure) {
+            $options = call_user_func($this->tableRowOptions, $model, $key, $index, $this);
         } else {
-            $options = $this->rowOptions;
+            $options = $this->tableRowOptions;
         }
-        $options['data-key'] = is_array($key) ? json_encode($key) : (string) $key;
+        $options['data-id'] = is_array($key) ? json_encode($key) : (string) $key;
 
         $id = ArrayHelper::getValue($model, $this->keyColumnName);
         Html::addCssClass($options, "treegrid-$id");
@@ -302,8 +392,8 @@ class TreeGrid extends Widget
         $keys = $this->dataProvider->getKeys();
         foreach ($models as $index => $model) {
             $key = $keys[$index];
-            if ($this->beforeRow !== null) {
-                $row = call_user_func($this->beforeRow, $model, $key, $index, $this);
+            if ($this->beforeTableRow !== null) {
+                $row = call_user_func($this->beforeTableRow, $model, $key, $index, $this);
                 if (!empty($row)) {
                     $rows[] = $row;
                 }
@@ -311,8 +401,8 @@ class TreeGrid extends Widget
 
             $rows[] = $this->renderTableRow($model, $key, $index);
 
-            if ($this->afterRow !== null) {
-                $row = call_user_func($this->afterRow, $model, $key, $index, $this);
+            if ($this->afterTableRow !== null) {
+                $row = call_user_func($this->afterTableRow, $model, $key, $index, $this);
                 if (!empty($row)) {
                     $rows[] = $row;
                 }
