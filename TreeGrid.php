@@ -2,6 +2,7 @@
 
 namespace Ja_D0\treegrid;
 
+use Ja_D0\treegrid\columns\TreeColumn;
 use Yii;
 use Closure;
 use yii\base\Widget;

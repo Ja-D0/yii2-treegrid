@@ -1,6 +1,6 @@
 <?php
 
-namespace Ja_D0\treegrid;
+namespace Ja_D0\treegrid\columns;
 
 use Closure;
 use yii\base\Model;
