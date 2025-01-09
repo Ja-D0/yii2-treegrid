@@ -28,3 +28,9 @@
 .treegrid-container {margin-bottom: 16px}
 
 .treegrid .table tr {cursor: pointer}
+
+.treegrid-search-container {position: relative;}
+
+.treegrid-search-container .treegrid-search-icon {position: absolute; width: 18px; height: 18px; right: 15px; top: 8px; background-repeat: no-repeat;}
+.search-logo {background-image: url(../img/search-logo.svg);}
+.search-clear {background-image: url(../img/search-clear.svg); cursor: pointer}

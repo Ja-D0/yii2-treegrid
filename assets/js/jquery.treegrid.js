@@ -7,8 +7,8 @@
  */
 (function($) {
 
+    var timer = 0;
     var delay = (function () {
-        var timer = 0;
         return function (callback, ms) {
             clearTimeout(timer);
             timer = setTimeout(callback, ms);
@@ -70,15 +70,25 @@
             var search = $(this);
             var nodes = $(widget).treegrid('getAllNodes');
             var findedClass = $(widget).treegrid('getSetting', 'findedClass');
+            var searchLogo = $('.treegrid-search-container .treegrid-search-icon');
             search.on("keyup", function(e) {
                 $(widget).treegrid('getRootNodes').show();
+                $(widget).treegrid('getSelectedNodes').treegrid('unselect');
                 nodes.removeClass(findedClass);
                 var value = search.val();
                 if (value.length === 0) {
+                    searchLogo.removeClass('search-clear');
+                    searchLogo.addClass('search-logo');
+                    searchLogo.off('click');
+                    clearTimeout(timer);
                     return;
-                } else {
-                    $(widget).treegrid('collapseAll');
                 }
+                searchLogo.removeClass('search-logo');
+                searchLogo.addClass('search-clear');
+                searchLogo.on('click', function () {
+                    search.val(null).trigger('keyup');
+                });
+                $(widget).treegrid('collapseAll');
                 delay(function () {
                     nodes.each(function () {
                         var $node = $(this);
