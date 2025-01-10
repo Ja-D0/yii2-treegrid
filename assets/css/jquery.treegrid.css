@@ -34,3 +34,6 @@
 .treegrid-search-container .treegrid-search-icon {position: absolute; width: 18px; height: 18px; right: 15px; top: 8px; background-repeat: no-repeat;}
 .search-logo {background-image: url(../img/search-logo.svg);}
 .search-clear {background-image: url(../img/search-clear.svg); cursor: pointer}
+
+.treegrid-valign-middle {vertical-align: middle; !important;}
+.treegrid-halign-center {text-align: center; !important;}
