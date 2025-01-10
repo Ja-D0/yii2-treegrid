@@ -13,11 +13,11 @@ class TreeGridAsset extends AssetBundle {
     public $sourcePath = __DIR__ . '/assets';
 
     public $js = [
-        'js/jquery.treegrid.js',
+        'js/jquery.treegrid.min.js',
     ];
 
     public $css = [
-        'css/jquery.treegrid.css',
+        'css/jquery.treegrid.min.css',
     ];
 
     public $depends = [
