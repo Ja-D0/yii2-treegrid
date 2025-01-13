@@ -5,7 +5,7 @@
 
 .treegrid-finded {background-color: #89C4F4;}
 
-.treegrid-expander-indent-line {border: none;display: inline-block;height: 1px;background-color: black;width: 8px;margin: 8px 8px;}
+.treegrid-expander-indent-line {border: none;display: inline-block;height: 1px;background-color: black;width: 8px;margin: 8px 12px;}
 
 .treegrid-selected .treegrid-expander-indent-line  {background-color: white;}
 
