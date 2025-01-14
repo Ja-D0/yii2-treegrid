@@ -35,5 +35,5 @@
 .search-logo {background-image: url(../img/search-logo.svg);}
 .search-clear {background-image: url(../img/search-clear.svg); cursor: pointer}
 
-.treegrid-valign-middle {vertical-align: middle; !important;}
-.treegrid-halign-center {text-align: center; !important;}
+.treegrid-valign-middle {vertical-align: middle !important;}
+.treegrid-halign-center {text-align: center !important;}
