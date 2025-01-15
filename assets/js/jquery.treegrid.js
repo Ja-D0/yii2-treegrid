@@ -222,7 +222,7 @@
         },
         /**
          * Инициализирует контейнер для группы иконок и отступов
-         * @return {*|jQuery|HTMLElement}
+         * @return {Node}
          */
         initDataCellContainer: function() {
             var $this = $(this);
