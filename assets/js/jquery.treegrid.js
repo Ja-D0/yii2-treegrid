@@ -46,7 +46,7 @@
                 var $this = $(this);
                 $this.treegrid('setTreeContainer', settings.getTreeGridContainer.apply(this));
                 $this.treegrid('getChildNodes').treegrid('initNode', settings);
-                $this.treegrid('initEvents').treegrid('initState').treegrid('initChangeEvent').treegrid("initSettingsEvents").treegrid('initIcon').treegrid('initExpander').treegrid('initIndent').treegrid('initIndentLine');
+                $this.treegrid('initEvents').treegrid('initState').treegrid('initChangeEvent').treegrid("initSettingsEvents").treegrid('initDataCellContainer').treegrid('initIcon').treegrid('initExpander').treegrid('initIndent').treegrid('initIndentLine');
             });
         },
         /**
@@ -204,17 +204,38 @@
         initExpander: function() {
             var $this = $(this);
             if ($this.treegrid('isCollapsed')) {
-                var cell = $this.find('td').get($this.treegrid('getSetting', 'treeColumn'));
+                var $cell = $($this.find('td').get($this.treegrid('getSetting', 'treeColumn')));
+                var treeColumnContainerClass = $this.treegrid('getSetting', 'treeColumnContainerClass');
+                var indentGroup = $this.treegrid('getSetting', 'indentGroupClass');
+                var indentGroupContainer = $cell.find('.' + treeColumnContainerClass + ' .' + indentGroup);
                 var tpl = $this.treegrid('getSetting', 'expanderTemplate');
                 var expander = $this.treegrid('getExpander');
                 if (expander) {
                     expander.remove();
                 }
-                $(tpl).prependTo(cell).click(function(e) {
+                $(tpl).prependTo(indentGroupContainer).click(function(e) {
                     e.stopPropagation();
                     $($(this).closest('tr')).treegrid('toggle');
                 });
             }
+            return $this;
+        },
+        /**
+         * Инициализирует контейнер для группы иконок и отступов
+         * @return {*|jQuery|HTMLElement}
+         */
+        initDataCellContainer: function() {
+            var $this = $(this);
+            var $cell = $($this.find('td').get($this.treegrid('getSetting', 'treeColumn')));
+            var cellContent = $cell.html();
+            var treeColumnContainerClass = $this.treegrid('getSetting', 'treeColumnContainerClass');
+            var indentGroup = $this.treegrid('getSetting', 'indentGroupClass');
+            $cell.empty().append(
+                $('<div class="' + treeColumnContainerClass + '"></div>').append(
+                    $('<div class="' + indentGroup + '"></div>'),
+                    $('<div></div>').html(cellContent)
+                )
+            );
             return $this;
         },
         /**
@@ -227,8 +248,17 @@
             $this.find('.treegrid-indent').remove();
             var tpl = $this.treegrid('getSetting', 'indentTemplate');
             var depth = $this.treegrid('getDepth') + 2;
+            var treeColumnContainerClass = $this.treegrid('getSetting', 'treeColumnContainerClass');
+            var indentGroup = $this.treegrid('getSetting', 'indentGroupClass');
+            var $cell = $($this.find('td')[$this.treegrid('getSetting', 'treeColumn')]);
+            var iconContainer = $cell.find('.' + treeColumnContainerClass + ' .' + indentGroup);
+
             for (var i = 0; i < depth; i++) {
-                $($this.find('td')[$this.treegrid('getSetting', 'treeColumn')]).prepend(tpl);
+                if (iconContainer.length > 0) {
+                    iconContainer.prepend(tpl);
+                } else {
+                    $cell.prepend(tpl);
+                }
             }
             return $this;
         },
@@ -255,8 +285,15 @@
             var $this = $(this);
             $this.find('.treegrid-icon').remove();
             var tpl = $this.treegrid('getSetting', 'iconTemplate');
-            $($this.find('td')[$this.treegrid('getSetting', 'treeColumn')]).prepend(tpl);
-
+            var treeColumnContainerClass = $this.treegrid('getSetting', 'treeColumnContainerClass');
+            var indentGroup = $this.treegrid('getSetting', 'indentGroupClass');
+            var $cell = $($this.find('td')[$this.treegrid('getSetting', 'treeColumn')]);
+            var iconContainer = $cell.find('.' + treeColumnContainerClass + ' .' + indentGroup);
+            if (iconContainer.length > 0) {
+                iconContainer.prepend(tpl);
+            } else {
+                $cell.prepend(tpl);
+            }
             return $this;
         },
         /**
@@ -850,6 +887,8 @@
         iconExpandedClass: 'treegrid-icon-expanded',
         iconCollapsedClass: 'treegrid-icon-collapsed',
         iconClass: 'treegrid-icon-file',
+        treeColumnContainerClass: 'treegrid-treecolumn-container',
+        indentGroupClass: 'treegrid-indent-group',
         treeColumn: 0,
         multipleSelect: false,
         selectRecursive: false,

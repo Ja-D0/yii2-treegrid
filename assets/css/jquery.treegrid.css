@@ -1,4 +1,7 @@
 .treegrid-indent {width:16px; height: 16px; display: inline-block; position: relative;}
+.treegrid-indent-group {min-width: max-content}
+
+.treegrid-treecolumn-container {display: flex;flex-direction: row;}
 
 .treegrid-selected {background-color: #428BCA !important; color: white !important;}
 .treegrid-selected a {color: white !important}
