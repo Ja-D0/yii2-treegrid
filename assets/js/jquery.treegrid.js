@@ -230,7 +230,8 @@
             var cellContent = $cell.html();
             var treeColumnContainerClass = $this.treegrid('getSetting', 'treeColumnContainerClass');
             var indentGroup = $this.treegrid('getSetting', 'indentGroupClass');
-            $cell.empty().append(
+            $cell.empty()
+            $cell.append(
                 $('<div class="' + treeColumnContainerClass + '"></div>').append(
                     $('<div class="' + indentGroup + '"></div>'),
                     $('<div></div>').html(cellContent)
