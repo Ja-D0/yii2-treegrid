@@ -23,6 +23,16 @@ use yii\i18n\Formatter;
 class TreeGrid extends Widget
 {
     /**
+     * Определяет положение поля поиска справа в строке свободного пространства
+     */
+    const SEARCH_POSITION_RIGHT = 'right';
+
+    /**
+     * Определяет положение поля поиска справа в строке свободного пространства
+     */
+    const SEARCH_POSITION_LEFT = 'left';
+
+    /**
      * @var \yii\data\DataProviderInterface|\yii\data\BaseDataProvider the data provider for the view. This property is required.
      */
     public $dataProvider;
@@ -59,11 +69,25 @@ class TreeGrid extends Widget
      */
     public $pluginOptions = [];
 
+    /**
+     * @var array аттрибуты HTML для тега контейнера свободного пространства
+     */
     public $containerRowOptions = ["class" => "treegrid-container row"];
 
+    /**
+     * @var array аттрибуты HTML для тега контейнера поля поиска
+     */
     public $searchContainerOptions = [];
 
+    /**
+     * @var array аттрибты HTML для поля поиска
+     */
     public $searchInputOptions = ["placeholder" => "Введите текст для поиска"];
+
+    /**
+     * @var string положение поля поиска в строке свободного пространства
+     */
+    public $searchPosition = self::SEARCH_POSITION_RIGHT;
 
     /**
      * @var array the HTML attributes for the table header row.
@@ -267,6 +291,10 @@ class TreeGrid extends Widget
             $containerSpaceContent,
             $search
         ]);
+
+        if ($search !== false && $this->searchPosition === self::SEARCH_POSITION_LEFT) {
+            $content = array_reverse($content);
+        }
 
         return Html::tag("div", implode("\n", $content), $this->containerRowOptions);
 
