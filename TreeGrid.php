@@ -50,6 +50,11 @@ class TreeGrid extends Widget
     public $tableOptions = ['class' => 'table table-bordered col-sm-12'];
 
     /**
+     * @var array аттрибуты HTML для тега контейнера таблицы дерева
+     */
+    public $tableContainerOptions = [];
+
+    /**
      * @var array The plugin options
      */
     public $pluginOptions = [];
@@ -235,7 +240,7 @@ class TreeGrid extends Widget
             ]);
 
             $table = Html::tag('table', implode("\n", $tableContent), $this->tableOptions);
-            $tableRow = Html::tag('div', $table);
+            $tableRow = Html::tag('div', $table, $this->tableContainerOptions);
 
             $content =  array_filter([
                 $containerContent,
