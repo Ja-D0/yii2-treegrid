@@ -322,7 +322,7 @@ class TreeGrid extends Widget
                 Html::addCssClass($manageContentOptions, "col-sm-6");
                 Html::addCssClass($manageContentOptions, "treegrid-flex-container");
             } else if ($this->showTreeManageButtons) {
-                Html::addCssClass($manageContentOptions, "col-sm-1");
+                Html::addCssClass($manageContentOptions, "col-sm-2");
             }
 
             $manageContent = Html::tag("div" , implode("\n", $manageContent), $manageContentOptions);
@@ -384,7 +384,7 @@ class TreeGrid extends Widget
     {
         $containerOptions = [];
         if ($this->showTreeManageButtons && !$this->showSearch) {
-            Html::addCssClass($containerOptions, "col-sm-11");
+            Html::addCssClass($containerOptions, "col-sm-10");
         } else if ($this->showSearch) {
             Html::addCssClass($containerOptions, "col-sm-6");
         } else {
