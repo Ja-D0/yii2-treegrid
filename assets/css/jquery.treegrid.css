@@ -38,7 +38,7 @@
 .treegrid-manage-button-group-right {float: right}
 .treegrid-manage-button-group-left {float: left}
 
-.treegrid-search-container .treegrid-search-icon {position: relative; width: 18px; height: 18px; right: 15px; top: 8px; background-repeat: no-repeat;}
+.treegrid-search-container .treegrid-search-icon {position: absolute; width: 18px; height: 18px; right: 15px; top: 8px; background-repeat: no-repeat;}
 .search-logo {background-image: url(../img/search-logo.svg);}
 .search-clear {background-image: url(../img/search-clear.svg); cursor: pointer}
 
