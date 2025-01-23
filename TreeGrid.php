@@ -3,6 +3,7 @@
 namespace Ja_D0\treegrid;
 
 use Ja_D0\treegrid\columns\TreeColumn;
+use libphonenumber\ValidationResult;
 use Yii;
 use Closure;
 use yii\base\Widget;
@@ -121,6 +122,11 @@ class TreeGrid extends Widget
      * @var bool отображать ли поле поиска
      */
     public $showSearch = true;
+
+    /**
+     * @var bool отображать ли кнопки управления деревом
+     */
+    public $showTreeManageButtons = true;
 
     /**
      * @var bool отображать ли контейнер с контентом над таблицей
@@ -284,15 +290,52 @@ class TreeGrid extends Widget
     public function renderContainerContent()
     {
         $search = $this->showSearch ? $this->renderSearch() : false;
-
+        $expandAll = $this->showTreeManageButtons ? $this->renderButtonExpandAll() : false;
+        $collapseAll = $this->showTreeManageButtons ? $this->renderButtonCollapseAll() : false;
         $containerSpaceContent = $this->renderContainerSpace();
 
-        $content = array_filter([
-            $containerSpaceContent,
+        if (!$this->showSearch) {
+            if ($this->showTreeManageButtons && $this->searchPosition === self::SEARCH_POSITION_RIGHT) {
+                $buttonGroup = Html::tag("div", $expandAll . $collapseAll, ["class" => "treegrid-manage-button-group-right"]);
+            } else if ($this->searchPosition === self::SEARCH_POSITION_LEFT) {
+                $buttonGroup = Html::tag("div", $expandAll. $collapseAll, ["class" => "treegrid-manage-button-group-left"]);
+            } else {
+                $buttonGroup = false;
+            }
+        } else {
+            $buttonGroup = $expandAll . $collapseAll;
+        }
+
+        $manageContent = array_filter([
+            $buttonGroup,
             $search
         ]);
 
-        if ($search !== false && $this->searchPosition === self::SEARCH_POSITION_LEFT) {
+        if ($this->searchPosition === self::SEARCH_POSITION_LEFT) {
+            $manageContent = array_reverse($manageContent);
+        }
+
+        $manageContentOptions = [];
+
+        if ($this->showSearch || $this->showTreeManageButtons) {
+            if ($search) {
+                Html::addCssClass($manageContentOptions, "col-sm-6");
+                Html::addCssClass($manageContentOptions, "treegrid-flex-container");
+            } else if ($this->showTreeManageButtons) {
+                Html::addCssClass($manageContentOptions, "col-sm-1");
+            }
+
+            $manageContent = Html::tag("div" , implode("\n", $manageContent), $manageContentOptions);
+        } else {
+            $manageContent = false;
+        }
+
+        $content = array_filter([
+            $containerSpaceContent,
+            $manageContent
+        ]);
+
+        if ($this->searchPosition === self::SEARCH_POSITION_LEFT) {
             $content = array_reverse($content);
         }
 
@@ -312,9 +355,25 @@ class TreeGrid extends Widget
         $searchLogo = Html::tag("span", options: ["class" => "treegrid-search-icon search-logo"]);
         $searchInput = Html::input("text", options: $this->searchInputOptions);
 
-        $searchInputContainer = Html::tag("div", $searchLogo . $searchInput, $this->searchContainerOptions);
+        return Html::tag("div", $searchLogo . $searchInput, $this->searchContainerOptions);
+    }
 
-        return Html::tag("div", $searchInputContainer, ["class" => "col-sm-6"]);
+    /**
+     * Рендерит кнопку разворачивания всех узлов
+     * @return string
+     */
+    public function renderButtonExpandAll(): string
+    {
+        return Html::button("E", ["class" => "btn btn-default", "style" => "height: 34px; width: 34px"]);
+    }
+
+    /**
+     * Рендерит кнопку сворачивания всех узлов
+     * @return string
+     */
+    public function renderButtonCollapseAll(): string
+    {
+        return Html::button("C", ["class" => "btn btn-default", "style" => "height: 34px; width: 34px"]);
     }
 
     /**
@@ -323,7 +382,14 @@ class TreeGrid extends Widget
      */
     public function renderContainerSpace(): string
     {
-        $containerOptions = ["class" => "col-sm-" . ($this->showSearch ? "6" : "12")];
+        $containerOptions = [];
+        if ($this->showTreeManageButtons && !$this->showSearch) {
+            Html::addCssClass($containerOptions, "col-sm-11");
+        } else if ($this->showSearch) {
+            Html::addCssClass($containerOptions, "col-sm-6");
+        } else {
+            Html::addCssClass($containerOptions, "col-sm-12");
+        }
 
         if ($this->containerSpace instanceof Closure) {
             $containerSpaceContent = call_user_func($this->containerSpace);

@@ -32,7 +32,11 @@
 
 .treegrid .table tr {cursor: pointer}
 
-.treegrid-search-container {position: relative;}
+.treegrid-search-container {position: relative; width: 100%}
+
+.treegrid-flex-container {display: flex; flex-direction: row; gap: 3px}
+.treegrid-manage-button-group-right {float: right}
+.treegrid-manage-button-group-left {float: left}
 
 .treegrid-search-container .treegrid-search-icon {position: absolute; width: 18px; height: 18px; right: 15px; top: 8px; background-repeat: no-repeat;}
 .search-logo {background-image: url(../img/search-logo.svg);}
