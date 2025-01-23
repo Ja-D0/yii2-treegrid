@@ -30,9 +30,6 @@
                 $this.treegrid('setSettings', settings);
                 settings.getRootNodes.apply(this, [$(this)]).treegrid('initNode', settings);
                 $this.treegrid('getRootNodes').treegrid('render');
-                $this.treegrid('getSetting', 'getSearchInput').apply(this).each(function() {
-                    $(this).treegrid('initSearchEvent', $this);
-                });
             });
         },
         /**
@@ -195,6 +192,25 @@
                 }
             });
             return $this;
+        },
+        initSearch: function () {
+            var $this = $(this);
+            $this.treegrid('getSetting', 'getSearchInput').apply(this).each(function() {
+                $(this).treegrid('initSearchEvent', $this);
+            });
+        },
+        initManageButtons: function () {
+            var $this = $(this);
+            $this.find("#treegrid-expand-all").each(function () {
+                $(this).on("click", function() {
+                    $this.treegrid("expandAll");
+                });
+            });
+            $this.find("#treegrid-collapse-all").each(function () {
+                $(this).on("click", function() {
+                    $this.treegrid("collapseAll")
+                });
+            });
         },
         /**
          * Initialize expander for node

@@ -257,6 +257,13 @@ class TreeGrid extends Widget
 
         $view->registerJs("jQuery('#$id').treegrid($options);");
 
+        if ($this->showSearch) {
+            $view->registerJs("jQuery('#$id').treegrid('initSearch');");
+        }
+        if ($this->showTreeManageButtons) {
+            $view->registerJs("jQuery('#$id').treegrid('initManageButtons');");
+        }
+
         if ($this->showOnEmpty || $this->dataProvider->getCount() > 0) {
             $containerContent = $this->showContainerContent ? $this->renderContainerContent() : false;
             $header = $this->showHeader ? $this->renderTableHeader() : false;
@@ -364,7 +371,7 @@ class TreeGrid extends Widget
      */
     public function renderButtonExpandAll(): string
     {
-        return Html::button("E", ["class" => "btn btn-default", "style" => "height: 34px; width: 34px"]);
+        return Html::button("E", ["id" => "treegrid-expand-all", "class" => "btn btn-primary", "style" => "height: 34px; width: 34px"]);
     }
 
     /**
@@ -373,7 +380,7 @@ class TreeGrid extends Widget
      */
     public function renderButtonCollapseAll(): string
     {
-        return Html::button("C", ["class" => "btn btn-default", "style" => "height: 34px; width: 34px"]);
+        return Html::button("C", ["id" => "treegrid-collapse-all", "class" => "btn btn-danger", "style" => "height: 34px; width: 34px"]);
     }
 
     /**
