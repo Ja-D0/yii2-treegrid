@@ -371,7 +371,8 @@ class TreeGrid extends Widget
      */
     public function renderButtonExpandAll(): string
     {
-        return Html::button("E", ["id" => "treegrid-expand-all", "class" => "btn btn-primary", "style" => "height: 34px; width: 34px"]);
+        $icon = Html::tag("span", options: ["id" => "treegrid-expand-all-icon"]);
+        return Html::a($icon, options: ["id" => "treegrid-expand-all", "class" => "btn btn-primary", "style" => "padding: 0; height: 34px; width: 34px;"]);
     }
 
     /**
@@ -380,7 +381,8 @@ class TreeGrid extends Widget
      */
     public function renderButtonCollapseAll(): string
     {
-        return Html::button("C", ["id" => "treegrid-collapse-all", "class" => "btn btn-danger", "style" => "height: 34px; width: 34px"]);
+        $icon =  $icon = Html::tag("span", options: ["id" => "treegrid-collapse-all-icon"]);
+        return Html::button($icon, ["id" => "treegrid-collapse-all", "class" => "btn btn-danger", "style" => "padding: 0; height: 34px; width: 34px;"]);
     }
 
     /**

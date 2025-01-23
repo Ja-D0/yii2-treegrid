@@ -38,6 +38,9 @@
 .treegrid-manage-button-group-right {float: right}
 .treegrid-manage-button-group-left {float: left}
 
+#treegrid-collapse-all-icon {display: block; width:34px; height:34px; background-image: url(../img/collapse-all.svg); background-repeat: no-repeat; background-position: center center;}
+#treegrid-expand-all-icon {display: block; width:34px; height:34px; background-image: url(../img/expand-all.svg); background-repeat: no-repeat; background-position: center center;}
+
 .treegrid-search-container .treegrid-search-icon {position: absolute; width: 18px; height: 18px; right: 15px; top: 8px; background-repeat: no-repeat;}
 .search-logo {background-image: url(../img/search-logo.svg);}
 .search-clear {background-image: url(../img/search-clear.svg); cursor: pointer}
