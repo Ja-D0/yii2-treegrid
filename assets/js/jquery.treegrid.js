@@ -200,15 +200,25 @@
             });
         },
         initManageButtons: function () {
-            var $this = $(this);
+            let $this = $(this);
             $this.find("#treegrid-expand-all").each(function () {
                 $(this).on("click", function() {
-                    $this.treegrid("expandAll");
+                    let findedNodes = $this.treegrid("getFindedNodes");
+                    if (findedNodes.length > 0) {
+                        findedNodes.treegrid("expandRecursive");
+                    } else {
+                        $this.treegrid("expandAll");
+                    }
                 });
             });
             $this.find("#treegrid-collapse-all").each(function () {
                 $(this).on("click", function() {
-                    $this.treegrid("collapseAll")
+                    let findedNodes = $this.treegrid("getFindedNodes");
+                    if (findedNodes.length > 0) {
+                        findedNodes.treegrid("collapseRecursive");
+                    } else {
+                        $this.treegrid("collapseAll");
+                    }
                 });
             });
         },
@@ -430,6 +440,15 @@
         getSelectedNodes: function () {
             var $this = $(this);
             return $this.treegrid('getTreeContainer').find('tr.' + $this.treegrid('getSetting', 'selectedClass'));
+        },
+        /**
+         * Возвращает найденные узлы при поиске
+         *
+         * @return {Node}
+         */
+        getFindedNodes: function () {
+            var $this = $(this);
+            return $this.treegrid('getTreeContainer').find('tr.' + $this.treegrid('getSetting', 'findedClass'));
         },
         /**
          * Возвращает расширитель узла
