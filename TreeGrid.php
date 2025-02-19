@@ -382,7 +382,7 @@ class TreeGrid extends Widget
     public function renderButtonCollapseAll(): string
     {
         $icon =  $icon = Html::tag("span", options: ["id" => "treegrid-collapse-all-icon"]);
-        return Html::button($icon, ["id" => "treegrid-collapse-all", "class" => "btn btn-warning", "style" => "padding: 0; height: 34px; width: 34px;"]);
+        return Html::button($icon, ["id" => "treegrid-collapse-all", "class" => "btn btn-danger", "style" => "padding: 0; height: 34px; width: 34px;"]);
     }
 
     /**
